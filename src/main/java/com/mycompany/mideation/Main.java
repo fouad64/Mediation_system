@@ -1,5 +1,7 @@
 package com.mycompany.mideation;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class Main {
@@ -8,22 +10,20 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // try-with-resources → auto disconnect when done
-        try (SFTPClient client = new SFTPClient("sftp.properties")) {
+        // ── List of CSV files to upload ──────────────────────────────────────
+        List<String> files = Arrays.asList(
+            "/home/fouad/Desktop/msc_cdr.csv",
+            "/home/fouad/Desktop/msc_cdr2.csv",
+            "/home/fouad/Desktop/msc_cdr3.csv"
+        );
 
-            client.connect();
-
-            // ── Upload ──
-            client.upload("/home/fouad/Desktop/msc_cdr.csv");
-
-            // ── List ──
-            client.listFiles();
-
-            // ── Download ──
-            client.download("msc_cdr.csv", "/home/fouad/Downloads");
-
+        // ── Upload to all servers in parallel ────────────────────────────────
+        try {
+            SFTPUploadManager manager = new SFTPUploadManager("sftp.properties");
+            manager.uploadAll(files);
+            manager.shutdown();
         } catch (Exception e) {
-            LOGGER.severe("SFTP operation failed: " + e.getMessage());
+            LOGGER.severe("Fatal error: " + e.getMessage());
         }
     }
 }
