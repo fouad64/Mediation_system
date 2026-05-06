@@ -17,6 +17,11 @@ public class SFTPClient implements AutoCloseable {
 
     private Session     session;
     private ChannelSftp channel;
+    
+    
+    public int getPort() {
+    return port;
+}
 
     public SFTPClient(String serverName, String host, int port,
                       String user, String password, String remoteDir) {

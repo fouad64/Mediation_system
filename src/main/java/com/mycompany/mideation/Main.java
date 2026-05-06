@@ -1,8 +1,9 @@
 package com.mycompany.mideation;
 
-import java.util.Arrays;
-import java.util.List;
+import java.nio.file.*;
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -10,18 +11,43 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // ── List of CSV files to upload ──────────────────────────────────────
-        List<String> files = Arrays.asList(
-            "/home/fouad/Desktop/msc_cdr.csv",
-            "/home/fouad/Desktop/msc_cdr2.csv",
-            "/home/fouad/Desktop/msc_cdr3.csv"
-        );
-
-        // ── Upload to all servers in parallel ────────────────────────────────
         try {
+
+            Path dir = Paths.get("cdr");
+
+            // ── Read all CSV files
+            List<String> allFiles;
+
+            try (var stream = Files.list(dir)) {
+                allFiles = stream
+                        .filter(p -> p.toString().endsWith(".csv"))
+                        .map(Path::toString)
+                        .collect(Collectors.toList());
+            }
+
+            // Rout
+            List<String> mscFiles = allFiles.stream()
+                    .filter(f -> f.contains("msc"))
+                    .toList();
+
+            List<String> ggsnFiles = allFiles.stream()
+                    .filter(f -> f.contains("ggsn"))
+                    .toList();
+
+            List<String> pgwFiles = allFiles.stream()
+                    .filter(f -> f.contains("pgw"))
+                    .toList();
+
+            Map<Integer, List<String>> routed = new HashMap<>();
+            routed.put(22, mscFiles);
+            routed.put(222, ggsnFiles);
+            routed.put(2222, pgwFiles);
+
+            // Execute
             SFTPUploadManager manager = new SFTPUploadManager("sftp.properties");
-            manager.uploadAll(files);
+            manager.uploadAll(routed);
             manager.shutdown();
+
         } catch (Exception e) {
             LOGGER.severe("Fatal error: " + e.getMessage());
         }
