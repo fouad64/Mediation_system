@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   msc:
@@ -22,3 +20,17 @@ services:
     ports:
       - "2223:22"
     command: admin:123456:1001::upload
+
+  postpaid:
+    image: atmoz/sftp
+    container_name: postpaid
+    ports:
+      - "2224:22"
+    command: admin:123456:1001::Download
+
+  prepaid:
+    image: atmoz/sftp
+    container_name: prepaid
+    ports:
+      - "2225:22"
+    command: admin:123456:1001::Download
