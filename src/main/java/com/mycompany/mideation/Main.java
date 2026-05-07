@@ -39,9 +39,9 @@ public class Main {
                     .toList();
 
             Map<Integer, List<String>> routed = new HashMap<>();
-            routed.put(22, mscFiles);
-            routed.put(222, sms_cFiles);
-            routed.put(2222, pgwFiles);
+            routed.put(2221, mscFiles);
+            routed.put(2222, sms_cFiles);
+            routed.put(2223, pgwFiles);
 
             // Execute
             SFTPUploadManager manager = new SFTPUploadManager("sftp.properties");

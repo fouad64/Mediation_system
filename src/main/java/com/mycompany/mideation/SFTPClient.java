@@ -9,28 +9,27 @@ public class SFTPClient implements AutoCloseable {
     private static final Logger LOGGER = Logger.getLogger(SFTPClient.class.getName());
 
     private final String host;
-    private final int    port;
+    private final int port;
     private final String user;
     private final String password;
     private final String remoteDir;
     private final String serverName;
 
-    private Session     session;
+    private Session session;
     private ChannelSftp channel;
-    
-    
+
     public int getPort() {
-    return port;
-}
+        return port;
+    }
 
     public SFTPClient(String serverName, String host, int port,
-                      String user, String password, String remoteDir) {
+            String user, String password, String remoteDir) {
         this.serverName = serverName;
-        this.host       = host;
-        this.port       = port;
-        this.user       = user;
-        this.password   = password;
-        this.remoteDir  = remoteDir;
+        this.host = host;
+        this.port = port;
+        this.user = user;
+        this.password = password;
+        this.remoteDir = remoteDir;
     }
 
     public void connect() throws JSchException {
@@ -64,12 +63,16 @@ public class SFTPClient implements AutoCloseable {
         });
     }
 
-    public String getServerName() { return serverName; }
+    public String getServerName() {
+        return serverName;
+    }
 
     @Override
     public void close() {
-        if (channel != null && channel.isConnected()) channel.disconnect();
-        if (session  != null && session.isConnected())  session.disconnect();
+        if (channel != null && channel.isConnected())
+            channel.disconnect();
+        if (session != null && session.isConnected())
+            session.disconnect();
         LOGGER.info("[" + serverName + "] Disconnected");
     }
 }

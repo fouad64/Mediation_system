@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+
+  msc:
+    image: atmoz/sftp
+    container_name: msc
+    ports:
+      - "2221:22"
+    command: admin:123456:1001::upload
+
+  sms-c:
+    image: atmoz/sftp
+    container_name: sms-c
+    ports:
+      - "2222:22"
+    command: admin:123456:1001::upload
+
+  pgw:
+    image: atmoz/sftp
+    container_name: pgw
+    ports:
+      - "2223:22"
+    command: admin:123456:1001::upload
