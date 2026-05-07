@@ -40,34 +40,35 @@ The pipeline consists of four distinct phases:
 
 ## 🔍 Filtering Logic (SftpFilter)
 
-The system applies the following rules during the final filtering stage:
+The system applies strict multi-layered filtering during the final stage:
 
 *   **MSC (Mobile Switching Center)**:
-    *   Drops records with `duration = 0`.
-    *   Drops records involving **Short Codes** (2-6 digits).
-    *   Drops records where the release case is not `normal`.
+    *   **Name Validation**: `network_element_id` must contain "MSC".
+    *   **State Validation**: `status` must be "normal".
+    *   **Business Rules**: `duration_sec > 0` and must not be a short code.
 *   **PGW (Packet Gateway)**:
-    *   Drops records where both `uplink` and `downlink` bytes are `0`.
+    *   **Name Validation**: `network_element_id` must contain "PGW".
+    *   **State Validation**: `status` must be "active".
+    *   **Business Rules**: Must have `uplink` or `downlink` data > 0.
 *   **SMSC (SMS Center)**:
-    *   Drops records involving **Short Numbers**.
-    *   Drops records where status is not `delivered`.
+    *   **Name Validation**: `network_element_id` must contain "SMSC".
+    *   **State Validation**: `status` must be "delivered".
+    *   **Business Rules**: Sender/Receiver must not be short numbers.
 
 ## 🚦 Getting Started
 
-### 1. Start the SFTP Infrastructure
-Ensure Docker is running, then start the containers:
+### 1. Automation Script (Recommended)
+The easiest way to run the entire project is using the provided automation script. It handles infrastructure startup, status checks, and pipeline execution in one command:
 ```bash
-docker-compose up -d
+chmod +x run_pipeline.sh
+./run_pipeline.sh
 ```
 
-### 2. Prepare Input Data
-Place your raw CDR file in the `in/` folder (configured as `input_1.csv` by default).
-
-### 3. Run the Pipeline
-Execute the full mediation process using Maven:
-```bash
-mvn clean compile exec:java
-```
+### 2. Manual Steps
+If you prefer manual execution:
+1.  **Start Infrastructure**: `docker-compose up -d`
+2.  **Verify Status**: `docker-compose ps`
+3.  **Run Mediation**: `mvn clean compile exec:java`
 
 ## 📝 Output
 The final, cleaned CDR files will be available in the `filtered/` directory.
