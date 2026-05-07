@@ -1,0 +1,6 @@
+com/mycompany/mideation/CdrProcessor.class
+com/mycompany/mideation/ConfigLoader.class
+com/mycompany/mideation/MideationMain.class
+com/mycompany/mideation/SftpUploader.class
+com/mycompany/mideation/SftpFilter.class
+com/mycompany/mideation/SftpDownloader.class
