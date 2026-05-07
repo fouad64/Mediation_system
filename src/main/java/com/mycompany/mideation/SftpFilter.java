@@ -64,14 +64,14 @@ public class SftpFilter {
                             String calling = parts[1].trim();
                             String called = parts[2].trim();
                             String durationStr = parts[5].trim();
-                            
+
                             int duration = 0;
                             try {
                                 duration = durationStr.isEmpty() ? 0 : Integer.parseInt(durationStr);
                             } catch (Exception e) {
                                 duration = 0; // treat bad data as 0
                             }
-                            
+
                             // Check status (it might be in column 8 or 9)
                             String status = parts[8].trim();
                             if (status.isEmpty() && parts.length > 9) {
@@ -88,7 +88,7 @@ public class SftpFilter {
                         else if (type.equalsIgnoreCase("PGW")) {
                             String upStr = parts[6].trim();
                             String downStr = parts[7].trim();
-                            
+
                             long up = 0;
                             long down = 0;
                             try {
