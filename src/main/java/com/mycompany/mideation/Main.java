@@ -30,8 +30,8 @@ public class Main {
                     .filter(f -> f.contains("msc"))
                     .toList();
 
-            List<String> ggsnFiles = allFiles.stream()
-                    .filter(f -> f.contains("ggsn"))
+            List<String> sms_cFiles = allFiles.stream()
+                    .filter(f -> f.contains("sms-c"))
                     .toList();
 
             List<String> pgwFiles = allFiles.stream()
@@ -40,7 +40,7 @@ public class Main {
 
             Map<Integer, List<String>> routed = new HashMap<>();
             routed.put(22, mscFiles);
-            routed.put(222, ggsnFiles);
+            routed.put(222, sms_cFiles);
             routed.put(2222, pgwFiles);
 
             // Execute
