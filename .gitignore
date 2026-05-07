@@ -25,9 +25,3 @@ Thumbs.db
 # Maven
 target/
 
-# Mediation Pipeline Folders
-out/
-down/
-in/
-filtered/
-input_1.csv
