@@ -6,25 +6,21 @@ public class MideationMain {
 
         System.out.println("=== PIPELINE STARTED ===");
 
-        
-
         // =========================
-        // 2. PROCESS PHASE
+        // 1. PROCESS PHASE
         // =========================
         System.out.println("=== Processing Phase ===");
 
         String inputDir = ConfigLoader.get("input.dir");
-
-        String mscFile = ConfigLoader.get("output.msc");
+        String mscFile  = ConfigLoader.get("output.msc");
         String smscFile = ConfigLoader.get("output.smsc");
-        String pgwFile = ConfigLoader.get("output.pgw");
+        String pgwFile  = ConfigLoader.get("output.pgw");
 
         CdrProcessor processor = new CdrProcessor();
         processor.processFiles(inputDir, mscFile, smscFile, pgwFile);
 
-
         // =========================
-        // 3. UPLOAD PHASE
+        // 2. UPLOAD PHASE
         // =========================
         System.out.println("=== Upload Phase ===");
         SftpUploader.upload(mscFile,
@@ -40,19 +36,25 @@ public class MideationMain {
                 ConfigLoader.getInt("sftp.pgw.port"));
 
         // =========================
-        // 1. DOWNLOAD PHASE
+        // 3. DOWNLOAD PHASE
         // =========================
         System.out.println("=== Download Phase ===");
-
-        SftpDownloader.download("msc", "/upload/msc.csv", "./down/msc.csv");
+        SftpDownloader.download("msc",  "/upload/msc.csv",  "./down/msc.csv");
         SftpDownloader.download("smsc", "/upload/smsc.csv", "./down/smsc.csv");
-        SftpDownloader.download("pgw", "/upload/pgw.csv", "./down/pgw.csv");
+        SftpDownloader.download("pgw",  "/upload/pgw.csv",  "./down/pgw.csv");
 
         // =========================
-        // 4. FILTER PHASE (DOWNLOADED)
+        // 4. FILTER PHASE
         // =========================
         System.out.println("=== Filtering Downloaded Files ===");
         SftpFilter.filter("./down", "./filtered");
+
+        // =========================
+        // 5. DOWNSTREAM DELIVERY
+        // =========================
+        DownstreamDelivery.deliver();
+
+        DatabaseConnection.close();
 
         System.out.println("=== PIPELINE COMPLETED ===");
     }
