@@ -6,8 +6,6 @@ public class MideationMain {
 
         System.out.println("=== PIPELINE STARTED ===");
 
-        
-
         // =========================
         // 2. PROCESS PHASE
         // =========================
@@ -21,7 +19,6 @@ public class MideationMain {
 
         CdrProcessor processor = new CdrProcessor();
         processor.processFiles(inputDir, mscFile, smscFile, pgwFile);
-
 
         // =========================
         // 3. UPLOAD PHASE
@@ -55,5 +52,14 @@ public class MideationMain {
         SftpFilter.filter("./down", "./filtered");
 
         System.out.println("=== PIPELINE COMPLETED ===");
+
+        // =========================
+        // 5. ROUTING PHASE
+        // =========================
+        System.out.println("=== Routing Phase ===");
+
+        DownstreamRouter.routeFilteredFiles(
+                "./filtered"
+        );
     }
 }

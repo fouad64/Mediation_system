@@ -1,6 +1,10 @@
 com/mycompany/mideation/CdrProcessor.class
 com/mycompany/mideation/ConfigLoader.class
+com/mycompany/mideation/NodeInfo.class
+com/mycompany/mideation/DatabaseManager.class
 com/mycompany/mideation/MideationMain.class
 com/mycompany/mideation/SftpUploader.class
+com/mycompany/mideation/MediationRule.class
 com/mycompany/mideation/SftpFilter.class
+com/mycompany/mideation/DownstreamRouter.class
 com/mycompany/mideation/SftpDownloader.class
