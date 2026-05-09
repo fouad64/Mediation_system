@@ -26,3 +26,12 @@ CREATE TABLE Mediation_Rules (
     FOREIGN KEY (source_node_id) REFERENCES Nodes(id) ON DELETE CASCADE,
     FOREIGN KEY (destination_node_id) REFERENCES Nodes(id) ON DELETE CASCADE
 );
+
+=====================================================
+=====================================================
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'admin'
+);
