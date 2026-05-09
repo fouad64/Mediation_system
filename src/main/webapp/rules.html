@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mediation Rules - Mediation Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Mediation</h2>
+                <span style="color: var(--secondary); font-size: 0.8rem; font-weight: 600;">PORTAL</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">Dashboard Overview</a>
+                <a href="nodes.html" class="nav-item">Manage Nodes</a>
+                <a href="rules.html" class="nav-item active">Mediation Rules</a>
+            </nav>
+            <div style="padding: 1.5rem; border-top: 1px solid var(--border);">
+                <a href="/logout" class="nav-item" style="color: var(--danger);">Logout</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1>Mediation Rules</h1>
+                    <p style="color: var(--text-muted); margin-top: 0.25rem;">Define routing between upstream and downstream nodes</p>
+                </div>
+                <button class="btn btn-primary" onclick="openRuleModal()">+ Add New Rule</button>
+            </div>
+
+            <div class="table-container">
+                <table id="rulesTable">
+                    <thead>
+                        <tr>
+                            <th>Rule ID</th>
+                            <th>Source Node (Upstream)</th>
+                            <th>Destination Node (Downstream)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rule Modal -->
+    <div class="modal-overlay" id="ruleModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Rule</h3>
+                <button class="modal-close" onclick="closeModal('ruleModalOverlay')">&times;</button>
+            </div>
+            <form id="ruleForm">
+                <div class="modal-body">
+                    <input type="hidden" id="ruleId">
+                    <div class="form-group">
+                        <label>Source Node</label>
+                        <select id="sourceNode" class="form-control" required>
+                            <!-- Options -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination Node</label>
+                        <select id="destNode" class="form-control" required>
+                            <!-- Options -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background: var(--surface-hover); color: white;" onclick="closeModal('ruleModalOverlay')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Rule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        let nodesList = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadNodes();
+            loadRules();
+        });
+
+        async function loadNodes() {
+            const res = await fetchJSON('/api/nodes');
+            if (res && res.ok) {
+                nodesList = res.data;
+                const sourceSelect = document.getElementById('sourceNode');
+                const destSelect = document.getElementById('destNode');
+                
+                let options = '<option value="">Select a node...</option>';
+                nodesList.forEach(node => {
+                    options += `<option value="${node.id}">${node.nodeName} (${node.host})</option>`;
+                });
+                
+                sourceSelect.innerHTML = options;
+                destSelect.innerHTML = options;
+            }
+        }
+
+        function getNodeName(id) {
+            const node = nodesList.find(n => n.id === id);
+            return node ? node.nodeName : `Unknown Node (${id})`;
+        }
+
+        async function loadRules() {
+            const res = await fetchJSON('/api/rules');
+            if (res && res.ok) {
+                const tbody = document.querySelector('#rulesTable tbody');
+                tbody.innerHTML = '';
+                res.data.forEach(rule => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${rule.id}</td>
+                            <td>${getNodeName(rule.sourceNodeId)}</td>
+                            <td>${getNodeName(rule.destinationNodeId)}</td>
+                            <td class="actions">
+                                <button class="btn-icon" onclick="editRule(${rule.id}, ${rule.sourceNodeId}, ${rule.destinationNodeId})" title="Edit">✏️</button>
+                                <button class="btn-icon" onclick="deleteRule(${rule.id})" style="color: var(--danger);" title="Delete">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function openRuleModal() {
+            document.getElementById('modalTitle').innerText = 'Add New Rule';
+            document.getElementById('ruleForm').reset();
+            document.getElementById('ruleId').value = '';
+            openModal('ruleModalOverlay');
+        }
+
+        function editRule(id, sourceId, destId) {
+            document.getElementById('modalTitle').innerText = 'Edit Rule';
+            document.getElementById('ruleId').value = id;
+            document.getElementById('sourceNode').value = sourceId;
+            document.getElementById('destNode').value = destId;
+            openModal('ruleModalOverlay');
+        }
+
+        document.getElementById('ruleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('ruleId').value;
+            const sourceNodeId = parseInt(document.getElementById('sourceNode').value);
+            const destinationNodeId = parseInt(document.getElementById('destNode').value);
+            
+            const payload = { sourceNodeId, destinationNodeId };
+            
+            let url = '/api/rules';
+            let method = 'POST';
+            
+            if (id) {
+                url = `/api/rules/${id}`;
+                method = 'PUT';
+            }
+
+            const res = await fetchJSON(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res && res.ok) {
+                showToast(res.data.message || 'Saved successfully', 'success');
+                closeModal('ruleModalOverlay');
+                loadRules();
+            } else {
+                showToast(res.error?.error || 'Failed to save rule', 'error');
+            }
+        });
+
+        async function deleteRule(id) {
+            if (!confirm('Are you sure you want to delete this rule?')) return;
+            
+            const res = await fetchJSON(`/api/rules/${id}`, { method: 'DELETE' });
+            if (res && res.ok) {
+                showToast('Rule deleted', 'success');
+                loadRules();
+            } else {
+                showToast('Failed to delete rule', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

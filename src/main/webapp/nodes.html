@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Nodes - Mediation Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Mediation</h2>
+                <span style="color: var(--secondary); font-size: 0.8rem; font-weight: 600;">PORTAL</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">Dashboard Overview</a>
+                <a href="nodes.html" class="nav-item active">Manage Nodes</a>
+                <a href="rules.html" class="nav-item">Mediation Rules</a>
+            </nav>
+            <div style="padding: 1.5rem; border-top: 1px solid var(--border);">
+                <a href="/logout" class="nav-item" style="color: var(--danger);">Logout</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1>Manage Nodes</h1>
+                    <p style="color: var(--text-muted); margin-top: 0.25rem;">View, add, update, and delete system nodes</p>
+                </div>
+                <button class="btn btn-primary" onclick="openNodeModal()">+ Add New Node</button>
+            </div>
+
+            <div class="table-container">
+                <table id="nodesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Node Name</th>
+                            <th>IP Address</th>
+                            <th>Port</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Node Modal (Add/Edit) -->
+    <div class="modal-overlay" id="nodeModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Node</h3>
+                <button class="modal-close" onclick="closeModal('nodeModalOverlay')">&times;</button>
+            </div>
+            <form id="nodeForm">
+                <div class="modal-body">
+                    <input type="hidden" id="nodeId">
+                    <div class="form-group">
+                        <label>Node Name</label>
+                        <input type="text" id="nodeName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>IP Address</label>
+                        <input type="text" id="nodeIp" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Port</label>
+                        <input type="number" id="nodePort" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background: var(--surface-hover); color: white;" onclick="closeModal('nodeModalOverlay')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Node</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadNodes);
+
+        async function loadNodes() {
+            const res = await fetchJSON('/api/nodes');
+            if (res && res.ok) {
+                const tbody = document.querySelector('#nodesTable tbody');
+                tbody.innerHTML = '';
+                res.data.forEach(node => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${node.id}</td>
+                            <td>${node.nodeName}</td>
+                            <td>${node.host}</td>
+                            <td>${node.port}</td>
+                            <td class="actions">
+                                <button class="btn-icon" onclick="editNode(${node.id}, '${node.nodeName}', '${node.host}', ${node.port})" title="Edit">✏️</button>
+                                <button class="btn-icon" onclick="deleteNode(${node.id})" style="color: var(--danger);" title="Delete">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function openNodeModal() {
+            document.getElementById('modalTitle').innerText = 'Add New Node';
+            document.getElementById('nodeForm').reset();
+            document.getElementById('nodeId').value = '';
+            openModal('nodeModalOverlay');
+        }
+
+        function editNode(id, name, ip, port) {
+            document.getElementById('modalTitle').innerText = 'Edit Node';
+            document.getElementById('nodeId').value = id;
+            document.getElementById('nodeName').value = name;
+            document.getElementById('nodeIp').value = ip;
+            document.getElementById('nodePort').value = port;
+            openModal('nodeModalOverlay');
+        }
+
+        document.getElementById('nodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('nodeId').value;
+            const nodeName = document.getElementById('nodeName').value;
+            const host = document.getElementById('nodeIp').value;
+            const port = parseInt(document.getElementById('nodePort').value);
+            
+            const payload = { nodeName, host, port };
+            
+            let url = '/api/nodes';
+            let method = 'POST';
+            
+            if (id) {
+                url = `/api/nodes/${id}`;
+                method = 'PUT';
+            }
+
+            const res = await fetchJSON(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res && res.ok) {
+                showToast(res.data.message || 'Saved successfully', 'success');
+                closeModal('nodeModalOverlay');
+                loadNodes();
+            } else {
+                showToast(res.error?.error || 'Failed to save node', 'error');
+            }
+        });
+
+        async function deleteNode(id) {
+            if (!confirm('Are you sure you want to delete this node?')) return;
+            
+            const res = await fetchJSON(`/api/nodes/${id}`, { method: 'DELETE' });
+            if (res && res.ok) {
+                showToast('Node deleted', 'success');
+                loadNodes();
+            } else {
+                showToast('Failed to delete node', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
