@@ -25,9 +25,21 @@ public class SftpUploader {
             channelSftp = (ChannelSftp) session.openChannel("sftp");
             channelSftp.connect();
 
-            channelSftp.cd(remoteDir);
+            try {
+                channelSftp.cd(remoteDir);
+            } catch (SftpException e) {
+                if ("/upload/".equalsIgnoreCase(remoteDir)) {
+                    channelSftp.cd("/Download/");
+                } else {
+                    throw e;
+                }
+            }
 
             File file = new File(localFilePath);
+            if (!file.isFile() || file.length() == 0) {
+                System.out.println("Skipping upload (missing or empty): " + localFilePath);
+                return;
+            }
             channelSftp.put(localFilePath, file.getName());
 
             System.out.println("Uploaded: " + file.getName() + " → " + host + ":" + port);

@@ -18,7 +18,10 @@ public class MideationMain {
         String pgwFile = ConfigLoader.get("output.pgw");
 
         CdrProcessor processor = new CdrProcessor();
-        processor.processFiles(inputDir, mscFile, smscFile, pgwFile);
+        if (!processor.processFiles(inputDir, mscFile, smscFile, pgwFile)) {
+            System.out.println("=== PIPELINE SKIPPED (no input files in " + inputDir + ") ===");
+            return;
+        }
 
         // =========================
         // 3. UPLOAD PHASE
@@ -51,15 +54,39 @@ public class MideationMain {
         System.out.println("=== Filtering Downloaded Files ===");
         SftpFilter.filter("./down", "./filtered");
 
-        System.out.println("=== PIPELINE COMPLETED ===");
-
         // =========================
         // 5. ROUTING PHASE
         // =========================
         System.out.println("=== Routing Phase ===");
+        DownstreamRouter.routeFilteredFiles("./filtered");
 
-        DownstreamRouter.routeFilteredFiles(
-                "./filtered"
-        );
+        // =========================
+        // 6. CLEANUP PHASE
+        // =========================
+        System.out.println("=== Cleanup Phase ===");
+        SftpRemoteCleaner.clearUploadDirectory("msc");
+        SftpRemoteCleaner.clearUploadDirectory("smsc");
+        SftpRemoteCleaner.clearUploadDirectory("pgw");
+        cleanDirectory("./out");
+        cleanDirectory("./down");
+        cleanDirectory("./filtered");
+
+        System.out.println("=== PIPELINE COMPLETED ===");
+    }
+
+    private static void cleanDirectory(String dirPath) {
+        java.io.File dir = new java.io.File(dirPath);
+        java.io.File[] files = dir.listFiles();
+        if (files != null) {
+            for (java.io.File file : files) {
+                if (file.isFile()) {
+                    if (file.delete()) {
+                        System.out.println("Cleaned up temp file: " + file.getPath());
+                    } else {
+                        System.err.println("Failed to delete temp file: " + file.getPath());
+                    }
+                }
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ import java.io.*;
 
 public class CdrProcessor {
 
-    public void processFiles(String inputDirPath,
+    public boolean processFiles(String inputDirPath,
                              String mscFile,
                              String smscFile,
                              String pgwFile) {
@@ -14,7 +14,7 @@ public class CdrProcessor {
 
         if (files == null || files.length == 0) {
             System.out.println("No input files found.");
-            return;
+            return false;
         }
 
         try (
@@ -28,6 +28,19 @@ public class CdrProcessor {
             for (File file : files) {
 
                 if (!file.isFile()) continue;
+
+                // Backup the original CDR file before processing
+                try {
+                    File backupDir = new File("./backup");
+                    if (!backupDir.exists()) {
+                        backupDir.mkdirs();
+                    }
+                    File backupFile = new File(backupDir, file.getName());
+                    java.nio.file.Files.copy(file.toPath(), backupFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    System.out.println("Backup created: " + backupFile.getPath());
+                } catch (IOException e) {
+                    System.out.println("Failed to backup file: " + file.getName() + " - " + e.getMessage());
+                }
 
                 try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 
@@ -74,9 +87,11 @@ public class CdrProcessor {
             }
 
             System.out.println("Processing completed.");
+            return true;
 
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

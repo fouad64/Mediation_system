@@ -9,7 +9,6 @@ if [ -z "$RUNNING_CONTAINERS" ]; then
     echo "--------------------------------------"
     docker compose up -d
 
-    # 2. Give the containers a few seconds to fully initialize
     echo "⏳ Waiting for containers to be ready (5s)..."
     sleep 5
 else
@@ -18,12 +17,20 @@ else
     echo "--------------------------------------"
 fi
 
-# 3. Run the Java mediation pipeline using Maven
 echo "--------------------------------------"
-echo "⚙️  Running Mediation Pipeline..."
+echo "⚙️  Starting Automatic Mediation Scheduler (every 15s)"
+echo "    Press Ctrl+C to stop"
 echo "--------------------------------------"
-mvn clean compile exec:java
 
-echo "--------------------------------------"
-echo "✅ Pipeline Execution Finished!"
-echo "--------------------------------------"
+while true; do
+    echo "--------------------------------------"
+    echo "⚙️  Running Mediation Pipeline (Time: $(date))..."
+    echo "--------------------------------------"
+
+    mvn compile exec:java
+
+    echo "--------------------------------------"
+    echo "✅ Pipeline Run Finished! Sleeping for 15 seconds..."
+    echo "--------------------------------------"
+    sleep 15
+done

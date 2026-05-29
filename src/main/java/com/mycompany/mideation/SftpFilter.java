@@ -35,8 +35,8 @@ public class SftpFilter {
             boolean headerSaved = false;
 
             for (File f : files) {
-                // Only process .csv files
-                if (f.getName().endsWith(".csv")) {
+                // Only process non-empty .csv files
+                if (f.getName().endsWith(".csv") && f.length() > 0) {
                     System.out.println("Filtering: " + f.getName());
 
                     BufferedReader reader = new BufferedReader(new FileReader(f));
@@ -125,6 +125,10 @@ public class SftpFilter {
             smscWriter.close();
             pgwWriter.close();
 
+            deleteIfEmpty(mscOut);
+            deleteIfEmpty(smscOut);
+            deleteIfEmpty(pgwOut);
+
         } catch (IOException e) {
             System.out.println("Error during filtering: " + e.getMessage());
         }
@@ -137,5 +141,11 @@ public class SftpFilter {
             return true;
         }
         return false;
+    }
+
+    private static void deleteIfEmpty(File file) {
+        if (file.exists() && file.length() == 0 && !file.delete()) {
+            System.err.println("Failed to delete empty filtered file: " + file.getPath());
+        }
     }
 }

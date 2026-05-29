@@ -2,6 +2,7 @@ package com.mycompany.mideation;
 
 import com.jcraft.jsch.*;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
@@ -17,6 +18,7 @@ public class SftpDownloader {
 
         Session session = null;
         ChannelSftp channelSftp = null;
+        File local = new File(localFile);
 
         try {
             JSch jsch = new JSch();
@@ -40,6 +42,9 @@ public class SftpDownloader {
 
         } catch (Exception e) {
             System.out.println("Download failed: " + type);
+            if (local.exists() && !local.delete()) {
+                System.err.println("Failed to remove incomplete file: " + localFile);
+            }
             e.printStackTrace();
         } finally {
             if (channelSftp != null) channelSftp.disconnect();
